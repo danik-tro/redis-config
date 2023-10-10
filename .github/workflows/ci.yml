@@ -1,0 +1,137 @@
+
+name: CI 
+
+on:
+    push:
+      branches:
+        - master
+        - release/*
+      tags:
+        - v*
+    pull_request:
+      branches:
+        - master
+        - release/*
+
+jobs:
+  fmt:
+    name: Fmt
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        rust:
+          - stable
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4.1.0
+
+      - name: Install toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.rust }}
+          components: rustfmt
+
+      - name: Run cargo fmt
+        run: cargo fmt --all -- --check
+
+  clippy:
+    needs: [fmt]
+    name: Clippy
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        rust:
+          - 1.73.0
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4.1.0
+
+      - name: Install toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.rust }}
+          components: clippy
+
+      - name: Run cargo clippy
+        run: cargo clippy --all-targets --all-features -- -D warnings  -W clippy::all -W clippy::pedantic
+
+  check:
+    needs: [fmt]
+    name: Check
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        rust:
+          - 1.70.0
+          - stable
+          - nightly
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4.1.0
+
+      - name: Install toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.rust }}
+
+      - name: Run cargo check
+        if: matrix.rust != 'nightly'
+        run: cargo check --all-features
+
+      - name: Run cargo check (nightly)
+        if: matrix.rust == 'nightly'
+        continue-on-error: true
+        run: cargo check --all-features
+
+  test:
+    needs: [check, clippy]
+    name: Integration Tests 
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        rust:
+          - 1.70.0
+          - 1.73.0
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4.1.0
+
+      - name: Install redis
+        run: sudo apt-get install -y redis-tools redis-server
+      - name: Verify that redis is up
+        run: redis-cli ping
+
+      - name: Install toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.rust }}
+
+      - name: Install nextest
+        uses: taiki-e/install-action@nextest
+
+      - name: Running tests 
+        env: 
+            TEST_REDIS_URL: redis://127.0.0.1:6379
+        run: cargo nextest run
+
+  check-examples:
+    name: Check examples
+    needs: [fmt]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        rust:
+          - 1.70.0
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4.1.0
+
+      - name: Install toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.rust }}
+
+      - name: Run cargo check
+        run: cargo check --examples

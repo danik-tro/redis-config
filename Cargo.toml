@@ -1,0 +1,50 @@
+[package]
+name = "redis_config"
+version = "0.1.0"
+edition = "2021"
+authors = ["Daniil Trotsenko <daniil.trotsenko.dev@gmail.com>"]
+readme = "README.md"
+keywords = ["config", "configuration", "settings", "redis"]
+categories = ["config", "redis"]
+documentation = "https://docs.rs/redis_config"
+homepage = "https://github.com/danik-tro/redis-config"
+repository = "https://github.com/danik-tro/redis-config"
+license = "MIT"
+description = "Implementation of Redis source as Async source for config-rs crate."
+rust-version = "1.70"
+
+[badges]
+maintence = { status = "experimental" }
+
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"]}
+serde_json = "1.0" 
+thiserror = "1.0"
+async-trait = "0.1"
+config = "0.13.3"
+redis = { version = "0.23.3", features = ["aio"], default-features = false}
+
+[features]
+default = ["tokio-cmp"]
+tokio-cmp = ["redis/tokio-comp"]
+async-std-comp = ["redis/async-std"]
+
+ahash = ["redis/ahash"]
+async-std-native-tls-comp = ["redis/async-std-native-tls-comp"]
+async-std-rustls-comp = ["redis/async-std-rustls-comp"]
+tokio-native-tls-comp = ["redis/tokio-native-tls-comp"]
+tokio-rustls-comp = ["redis/tokio-rustls-comp"]
+
+[dev-dependencies]
+tokio = { version = "1", features = ["rt", "macros", "rt-multi-thread"] }
+uuid = { version = "1.0", features = ["v4", "v7"] }
+uuid7 = "0.7.2" 
+redis = { version = "0.23.3", features = ["aio", "connection-manager", "tokio-comp"], default-features = false}
+async-once-cell = "0.5.3"
+fake = { version = "2.8", features = ["derive"] }
+futures = "0.3"
+
+[[example]]
+name = "redis_key_source"
+

@@ -21,10 +21,11 @@
 //! See the examples for general usage information.
 
 mod errors;
+pub mod states;
 
 pub use errors::{SourceError, SourceResult};
 
-use std::{collections::HashMap, fmt::Debug};
+use std::{collections::HashMap, fmt::Debug, marker::PhantomData};
 
 use config::{AsyncSource, ConfigError, Map};
 use redis::AsyncCommands;
@@ -71,18 +72,22 @@ use redis::AsyncCommands;
 /// }
 /// ```
 #[derive(Debug)]
-pub struct RedisSource<SK> {
+pub struct RedisSource<SK, S = states::PlainString> {
     /// Redis client
     client: redis::Client,
     /// The source key with the configuration
     source_key: SK,
     /// Indicate the Redis type in which configurations are stored. True for Hash, or String otherwise
-    is_hash: bool,
     /// A required source will error if the key cannot be found
     required: bool,
+    /// Indicate the Redis type in which configurations are stored.
+    ///
+    /// - use `Hash` state, if you want to retrieve configuration from Redis with the HGETALL command.
+    /// - use `PlainString` state, if you want to retrieve configuration from Redis with the GET command
+    state: PhantomData<S>,
 }
 
-impl<SK> RedisSource<SK> {
+impl<SK, S> RedisSource<SK, S> {
     /// Initialize a new redis source with provided `source_key` and `connection_info` to Redis.
     ///
     /// # Errors
@@ -96,19 +101,9 @@ impl<SK> RedisSource<SK> {
         Ok(Self {
             client,
             source_key,
-            is_hash: false,
             required: true,
+            state: PhantomData,
         })
-    }
-
-    /// Indicate the Redis type in which configurations are stored. True for Hash, or String otherwise
-    ///
-    /// - Set hash to true, if you want to retrieve configuration from Redis with the HGETALL command.
-    /// - Set hash to false, if you want to retrieve configuration from Redis with the GET command
-    #[must_use]
-    pub fn set_hash(mut self, value: bool) -> Self {
-        self.is_hash = value;
-        self
     }
 
     #[must_use]
@@ -118,7 +113,7 @@ impl<SK> RedisSource<SK> {
     }
 }
 
-impl<SK: redis::ToRedisArgs + Clone + Send + Sync> RedisSource<SK> {
+impl<SK: redis::ToRedisArgs + Clone + Send + Sync> RedisSource<SK, states::PlainString> {
     /// Collects the configuration from Redis using the GET command.
     async fn collect_from_key(&self) -> SourceResult<Map<String, config::Value>> {
         let data: Option<Vec<u8>> = self
@@ -136,12 +131,10 @@ impl<SK: redis::ToRedisArgs + Clone + Send + Sync> RedisSource<SK> {
 
         Ok(serde_json::from_slice(&data)?)
     }
+}
 
+impl<SK: redis::ToRedisArgs + Clone + Send + Sync> RedisSource<SK, states::Hash> {
     /// Collects the configuration from Redis using the HGETALL command.
-    ///
-    /// # Errors
-    ///
-    /// The method has not optimal realization, so with non-numeric data may be failed deserialization
     async fn collect_from_hash(&self) -> SourceResult<Map<String, config::Value>> {
         let data: Option<HashMap<String, Vec<u8>>> = self
             .client
@@ -165,16 +158,23 @@ impl<SK: redis::ToRedisArgs + Clone + Send + Sync> RedisSource<SK> {
 }
 
 #[async_trait::async_trait]
-impl<SK: redis::ToRedisArgs + Clone + Send + Sync + Debug> AsyncSource for RedisSource<SK> {
+impl<SK: redis::ToRedisArgs + Clone + Send + Sync + Debug> AsyncSource
+    for RedisSource<SK, states::Hash>
+{
     async fn collect(&self) -> Result<Map<String, config::Value>, ConfigError> {
-        if self.is_hash {
-            self.collect_from_hash()
-                .await
-                .map_err(|err| ConfigError::NotFound(err.to_string()))
-        } else {
-            self.collect_from_key()
-                .await
-                .map_err(|err| ConfigError::NotFound(err.to_string()))
-        }
+        self.collect_from_hash()
+            .await
+            .map_err(|err| ConfigError::NotFound(err.to_string()))
+    }
+}
+
+#[async_trait::async_trait]
+impl<SK: redis::ToRedisArgs + Clone + Send + Sync + Debug> AsyncSource
+    for RedisSource<SK, states::PlainString>
+{
+    async fn collect(&self) -> Result<Map<String, config::Value>, ConfigError> {
+        self.collect_from_key()
+            .await
+            .map_err(|err| ConfigError::NotFound(err.to_string()))
     }
 }

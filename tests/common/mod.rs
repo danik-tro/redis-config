@@ -3,6 +3,7 @@ use std::{fmt::Debug, sync::Arc};
 use async_once_cell::OnceCell;
 use config::builder::AsyncState;
 use redis::AsyncCommands;
+use redis_config::states;
 use serde::de::DeserializeOwned;
 
 const TEST_REDIS_URL_KEY: &str = "TEST_REDIS_URL";
@@ -14,11 +15,26 @@ pub fn get_redis_url() -> String {
     std::env::var(TEST_REDIS_URL_KEY).unwrap_or(DEFAULT_REDIS_URL.into())
 }
 
-pub async fn get_serialized_config<
+pub async fn get_serialized_config_plain_string<
     SK: redis::ToRedisArgs + Clone + Send + Sync + Debug + 'static,
     C: DeserializeOwned,
 >(
-    source: redis_config::RedisSource<SK>,
+    source: redis_config::RedisSource<SK, states::PlainString>,
+) -> C {
+    config::ConfigBuilder::<AsyncState>::default()
+        .add_async_source(source)
+        .build()
+        .await
+        .unwrap()
+        .try_deserialize()
+        .unwrap()
+}
+
+pub async fn get_serialized_config_hash<
+    SK: redis::ToRedisArgs + Clone + Send + Sync + Debug + 'static,
+    C: DeserializeOwned,
+>(
+    source: redis_config::RedisSource<SK, states::Hash>,
 ) -> C {
     config::ConfigBuilder::<AsyncState>::default()
         .add_async_source(source)

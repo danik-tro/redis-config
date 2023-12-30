@@ -1,11 +1,13 @@
-name: Release 
+name: Release update 
 
 permissions:
   pull-requests: write
   contents: write
 
 on:
-    workflow_dispatch
+  push:
+    branches:
+      - master 
 
 jobs:
   release-plz:
@@ -21,7 +23,7 @@ jobs:
       - name: Run release-plz
         uses: MarcoIeni/release-plz-action@v0.5
         with:
-          command: release
+          command: release-pr
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CARGO_REGISTRY_TOKEN: ${{ secrets.CRATES_API_TOKEN }}

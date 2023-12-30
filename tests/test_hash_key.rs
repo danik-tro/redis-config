@@ -6,7 +6,7 @@ use fake::faker::lorem::en::Words;
 use fake::{Dummy, Fake, Faker};
 
 use redis::AsyncCommands;
-use redis_config::RedisSource;
+use redis_config::{states, RedisSource};
 
 #[derive(Debug, serde::Deserialize, serde::Serialize, Dummy, PartialEq, Eq)]
 struct FlatConfiguration {
@@ -56,11 +56,10 @@ async fn flat_config() {
         .await
         .unwrap();
 
-    let source = RedisSource::try_new(uuid_key.clone(), common::get_redis_url())
-        .unwrap()
-        .set_hash(true);
+    let source =
+        RedisSource::<_, states::Hash>::try_new(uuid_key.clone(), common::get_redis_url()).unwrap();
 
-    let config_deserilized: FlatConfiguration = common::get_serialized_config(source).await;
+    let config_deserilized: FlatConfiguration = common::get_serialized_config_hash(source).await;
 
     // cleanup
     common::cleanup_key(&mut manager, &uuid_key).await;
@@ -92,11 +91,10 @@ async fn nested_config() {
         .await
         .unwrap();
 
-    let source = RedisSource::try_new(uuid_key.clone(), common::get_redis_url())
-        .unwrap()
-        .set_hash(true);
+    let source =
+        RedisSource::<_, states::Hash>::try_new(uuid_key.clone(), common::get_redis_url()).unwrap();
 
-    let config_deserilized: NestedConfiguration = common::get_serialized_config(source).await;
+    let config_deserilized: NestedConfiguration = common::get_serialized_config_hash(source).await;
 
     // cleanup
     common::cleanup_key(&mut manager, &uuid_key).await;

@@ -1,6 +1,6 @@
 use config::builder::AsyncState;
 use redis::AsyncCommands;
-use redis_config::RedisSource;
+use redis_config::{states, RedisSource};
 
 // hardcoded values, shouldn't be in production
 const REDIS_URL: &str = "redis://127.0.0.1:6379";
@@ -37,7 +37,7 @@ async fn get_config() -> Result<ApplicationSettings, config::ConfigError> {
                 .try_parsing(true),
         )
         .add_async_source(
-            RedisSource::try_new(SOURCE_KEY, REDIS_URL)
+            RedisSource::<_, states::PlainString>::try_new(SOURCE_KEY, REDIS_URL)
                 .map_err(|err| config::ConfigError::NotFound(err.to_string()))?,
         )
         .build()

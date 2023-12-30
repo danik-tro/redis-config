@@ -40,7 +40,7 @@ macro_rules! check_key_string_config {
         common::set_string_key_config(&mut manager, &uuid_key, &configuration).await;
 
         let source = RedisSource::try_new(uuid_key.clone(), common::get_redis_url()).unwrap();
-        let config_deserilized: $type = common::get_serialized_config(source).await;
+        let config_deserilized: $type = common::get_serialized_config_plain_string(source).await;
 
         // cleanup
         common::cleanup_key(&mut manager, &uuid_key).await;

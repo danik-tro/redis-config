@@ -15,6 +15,7 @@ pub fn get_redis_url() -> String {
     std::env::var(TEST_REDIS_URL_KEY).unwrap_or(DEFAULT_REDIS_URL.into())
 }
 
+#[allow(unused)]
 pub async fn get_serialized_config_plain_string<
     SK: redis::ToRedisArgs + Clone + Send + Sync + Debug + 'static,
     C: DeserializeOwned,
@@ -30,6 +31,7 @@ pub async fn get_serialized_config_plain_string<
         .unwrap()
 }
 
+#[allow(unused)]
 pub async fn get_serialized_config_hash<
     SK: redis::ToRedisArgs + Clone + Send + Sync + Debug + 'static,
     C: DeserializeOwned,

@@ -1,6 +1,6 @@
 [package]
 name = "redis_config"
-version = "0.1.1"
+version = "0.2.0"
 edition = "2021"
 authors = ["Daniil Trotsenko <daniil.trotsenko.dev@gmail.com>"]
 readme = "README.md"

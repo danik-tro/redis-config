@@ -40,7 +40,7 @@ See the examples for general usage information.
 
 [dependencies]
 config = "0.13.3"
-redis_config = { version = "*", features = ["tokio-cmp"]}
+redis_config = { version = "*", features = ["tokio-comp"]}
 tokio = { version = "1", features = ["rt", "macros", "rt-multi-thread"] }
 serde = { version = "1.0", features = ["derive"]}
 ```

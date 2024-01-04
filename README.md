@@ -1,8 +1,10 @@
 # redis-config
 
+[![Crates.io](https://img.shields.io/crates/v/redis_config.svg)](https://crates.io/crates/redis_config)
 ![Rust](https://img.shields.io/badge/rust-stable-brightgreen.svg)
 [![Crates.io](https://img.shields.io/crates/d/redis_config.svg)](https://crates.io/crates/redis_config)
 [![Docs.rs](https://docs.rs/redis_config/badge.svg)](https://docs.rs/redis_config)
+[![CI](https://github.com/danik-tro/redis-config/workflows/CI/badge.svg)](https://github.com/danik-tro/redis-config/actions)
 
 > Implementation of Redis source as Async source for config-rs crate.
 

@@ -26,8 +26,8 @@ config = "0.13.3"
 redis = { version = "0.24.0", features = ["aio"], default-features = false}
 
 [features]
-default = ["tokio-cmp"]
-tokio-cmp = ["redis/tokio-comp"]
+default = ["tokio-comp"]
+tokio-comp = ["redis/tokio-comp"]
 async-std-comp = ["redis/async-std"]
 
 ahash = ["redis/ahash"]

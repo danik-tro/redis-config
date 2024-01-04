@@ -48,7 +48,7 @@ commit_parsers = [
     { message = "^revert", group = "Revert" },
     { message = "^test", group = "Tests" },
     { message = "^chore\\(version\\):", skip = true },
-        { message = "^chore", skip = true },
+    { message = "^chore", skip = true },
     { message = "^chore(task)|ci", group = "Miscellaneous Chores" },
     { body = ".*security", group = "Security" },
 ]

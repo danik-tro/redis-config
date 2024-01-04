@@ -38,31 +38,50 @@ use redis::AsyncCommands;
 ///
 /// ```rust,no_run
 /// use config::builder::AsyncState;
-/// use redis_config::RedisSource;
+/// use redis::AsyncCommands;
+/// use redis_config::{states, RedisSource};
 ///
-///
+/// // hardcoded values, shouldn't be in production
 /// const REDIS_URL: &str = "redis://127.0.0.1:6379";
 /// const SOURCE_KEY: &str = "application-settings";
 ///
-/// #[derive(Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
+/// #[derive(Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Clone)]
 /// struct ServerSettings {
 ///     ttl: i64,
 ///     path: String,
+///     // another settings
+///     // ...
+/// }
+///
+/// #[derive(Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
+/// struct DbSettings {
+///     pool_size: usize,
+///     // another settings
+///     // ...
 /// }
 ///
 /// #[derive(Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
 /// struct ApplicationSettings {
+///     // settings that will be taken from RedisSource
 ///     server: ServerSettings,
+///     // settings that will be taken from Env
+///     db: DbSettings,
 /// }
 ///
 /// async fn get_config() -> Result<ApplicationSettings, config::ConfigError> {
 ///     let config = config::ConfigBuilder::<AsyncState>::default()
+///         .add_source(
+///             config::Environment::with_prefix("APP")
+///                 .separator("__")
+///                 .try_parsing(true),
+///         )
 ///         .add_async_source(
-///             RedisSource::try_new(SOURCE_KEY, REDIS_URL)
+///             RedisSource::<_, states::PlainString>::try_new(SOURCE_KEY, REDIS_URL)
 ///                 .map_err(|err| config::ConfigError::NotFound(err.to_string()))?,
-///             )
+///         )
 ///         .build()
 ///         .await?;
+///
 ///     config.try_deserialize()
 /// }
 ///

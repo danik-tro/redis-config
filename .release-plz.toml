@@ -1,6 +1,6 @@
 [workspace]
 allow_dirty = true # allow updating repositories with uncommitted changes
-changelog_config = ".cliff.toml" # use a custom git-cliff configuration
+# changelog_config = ".cliff.toml" # use a custom git-cliff configuration
 dependencies_update = true # update dependencies with `cargo update`
 pr_labels = ["release"]
 semver_check = true

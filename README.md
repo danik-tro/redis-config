@@ -1,33 +1,54 @@
 # redis-config
-
 [![Crates.io](https://img.shields.io/crates/v/redis_config.svg)](https://crates.io/crates/redis_config)
 ![Rust](https://img.shields.io/badge/rust-stable-brightgreen.svg)
 [![Crates.io](https://img.shields.io/crates/d/redis_config.svg)](https://crates.io/crates/redis_config)
 [![Docs.rs](https://docs.rs/redis_config/badge.svg)](https://docs.rs/redis_config)
 [![CI](https://github.com/danik-tro/redis-config/workflows/CI/badge.svg)](https://github.com/danik-tro/redis-config/actions)
 
+
 > Implementation of Redis source as Async source for config-rs crate.
 
+`redis-config` extends the list of possible sources provided by [config-rs](https://github.com/mehcode/config-rs) and provides an asynchronous `RedisSource` source using the [redis-rs](https://github.com/redis-rs/redis-rs).
+
+`RedisSource` supports reading configuration:
+ - from Hash using the HGETALL command,
+ - from String using the GET command,
+
+##### Features
+
+There are a few features defined in [redis-rs](https://github.com/redis-rs/redis-rs) that can enable additional functionality if so desired.
+ Some of them are turned on by default.
+ - ahash: enables ahash map/set support & uses ahash internally (+7-10% performance) (optional)
+ - tokio-comp: enables support for tokio runtime (enabled by default)
+ - async-std-comp: enables support for async-std runtime (optional)
+
+ ##### Tls features
+ - async-std-native-tls-comp: enables support for native-tls for async-std (optional)
+ - async-std-rustls-comp: enables support for rustls for async-std (optional)
+ - tokio-native-tls-comp: enables support for native-tls for tokio (optional)
+ - tokio-rustls-comp: enables support for rustls for tokio (optional).
+
+
+See the examples for general usage information.
+
 ## Usage
+
+### Dependencies
 
 ```toml
 # Cargo.toml
 
 [dependencies]
-redis_config = "*"
+config = "0.13.3"
+redis_config = { version = "*", features = ["tokio-cmp"]}
+tokio = { version = "1", features = ["rt", "macros", "rt-multi-thread"] }
+serde = { version = "1.0", features = ["derive"]}
 ```
 
-### Feature flags
-
-- `tokio-comp` - enables support for tokio runtime (enabled by default)
-- `async-std-comp` - enables support for async-std runtime (optional)
-- `ahash` - enables ahash map/set support & uses ahash internally (+7-10% performance) (optional)
-
-### Examples
+### Usage example
 
 ```rust
  use config::builder::AsyncState;
- use redis::AsyncCommands;
  use redis_config::{states, RedisSource};
 
  // hardcoded values, shouldn't be in production

@@ -1,25 +1,4 @@
-//! Crate extends the list of possible sources provided by [config-rs](https://github.com/mehcode/config-rs).
-//! Crate provides an asynchronous `RedisSource` source using the [redis-rs](https://github.com/redis-rs/redis-rs).
-//! `RedisSource` supports reading configuration:
-//! - from Hash using the HGETALL command,
-//! - from String using the GET command,
-//!
-//! # Optional Features
-//!
-//! There are a few features defined in [redis-rs](https://github.com/redis-rs/redis-rs) that can enable additional functionality if so desired.
-//! Some of them are turned on by default.
-//! - ahash: enables ahash map/set support & uses ahash internally (+7-10% performance) (optional)
-//! - tokio-comp: enables support for tokio runtime (enabled by default)
-//! - async-std-comp: enables support for async-std runtime (optional)
-//!
-//! Tls features
-//! - async-std-native-tls-comp: enables support for native-tls for async-std (optional)
-//! - async-std-rustls-comp: enables support for rustls for async-std (optional)
-//! - tokio-native-tls-comp: enables support for native-tls for tokio (optional)
-//! - tokio-rustls-comp: enables support for rustls for tokio (optional)
-//!
-//! See the examples for general usage information.
-
+#[doc = include_str!("../README.md")]
 mod errors;
 pub mod states;
 
@@ -38,7 +17,6 @@ use redis::AsyncCommands;
 ///
 /// ```rust,no_run
 /// use config::builder::AsyncState;
-/// use redis::AsyncCommands;
 /// use redis_config::{states, RedisSource};
 ///
 /// // hardcoded values, shouldn't be in production

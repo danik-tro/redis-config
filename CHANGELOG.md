@@ -32,15 +32,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Features
 
 - Implement MVP redis-config crate
-
-## [0.1.1] - 2023-12-30
-
-### Miscellaneous Chores
-
-- Update redis requirement from 0.23.3 to 0.24.0
-
-## [0.1.0] - 2023-10-10
-
-### Features
-
-- Implement MVP redis-config crate

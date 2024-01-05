@@ -1,6 +1,6 @@
-//! Docs 
+//! Docs
 #![doc = include_str!("../README.md")]
-//! 
+//!
 
 mod errors;
 pub mod states;

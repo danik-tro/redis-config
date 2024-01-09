@@ -4,7 +4,7 @@
 [![Crates.io](https://img.shields.io/crates/d/redis_config.svg)](https://crates.io/crates/redis_config)
 [![Docs.rs](https://docs.rs/redis_config/badge.svg)](https://docs.rs/redis_config)
 [![CI](https://github.com/danik-tro/redis-config/workflows/CI/badge.svg)](https://github.com/danik-tro/redis-config/actions)
-
+[![codecov](https://codecov.io/gh/danik-tro/redis-config/graph/badge.svg?token=yDK7m7Qvvt)](https://codecov.io/gh/danik-tro/redis-config)
 
 > Implementation of Redis source as Async source for config-rs crate.
 

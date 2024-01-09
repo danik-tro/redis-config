@@ -16,6 +16,8 @@ rust-version = "1.70"
 [badges]
 maintence = { status = "experimental" }
 
+[lib]
+doctest = false
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"]}

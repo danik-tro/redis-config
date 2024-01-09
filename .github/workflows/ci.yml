@@ -110,25 +110,10 @@ jobs:
       - name: Install nextest
         uses: taiki-e/install-action@nextest
 
-      - name: Running tests or Coverage 
+      - name: Running tests 
         env: 
             TEST_REDIS_URL: redis://127.0.0.1:6379
-        run: |
-          if [ ${{ github.ref_name }} == 'master' ]; then
-            echo "Installing tarpauling"
-            cargo install cargo-tarpaulin
-            echo "Running tests coverage"
-            cargo tarpaulin  --all-features --workspace --timeout 120 --out xml
-          else
-            echo "Run nextest"
-            cargo nextest run --workspace --all-targets
-          fi
-      - name: Upload to codecov.io
-        uses: codecov/codecov-action@v3
-        with:
-          files: ./cobertura.xml
-          token: ${{ secrets.CODECOV_TOKEN }} 
-          verbose: true
+        run: cargo nextest run --workspace --all-targets
 
 
   check-examples:

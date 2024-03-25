@@ -118,7 +118,7 @@ impl<SK: redis::ToRedisArgs + Clone + Send + Sync> RedisSource<SK, states::Plain
     async fn collect_from_key(&self) -> SourceResult<Map<String, config::Value>> {
         let data: Option<Vec<u8>> = self
             .client
-            .get_async_connection()
+            .get_multiplexed_async_connection()
             .await?
             .get(self.source_key.clone())
             .await?;
@@ -138,7 +138,7 @@ impl<SK: redis::ToRedisArgs + Clone + Send + Sync> RedisSource<SK, states::Hash>
     async fn collect_from_hash(&self) -> SourceResult<Map<String, config::Value>> {
         let data: Option<HashMap<String, Vec<u8>>> = self
             .client
-            .get_async_connection()
+            .get_multiplexed_async_connection()
             .await?
             .hgetall(self.source_key.clone())
             .await?;

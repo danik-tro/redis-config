@@ -49,15 +49,15 @@ pub async fn get_serialized_config_hash<
         .unwrap()
 }
 
-pub async fn get_connection() -> redis::aio::Connection {
+pub async fn get_connection() -> redis::aio::MultiplexedConnection {
     let redis_url = get_redis_url();
     let client = redis::Client::open(redis_url).unwrap();
-    client.get_async_connection().await.unwrap()
+    client.get_multiplexed_async_connection().await.unwrap()
 }
 
 #[allow(unused)]
 pub async fn set_string_key_config<T: serde::Serialize>(
-    connection: &mut redis::aio::Connection,
+    connection: &mut redis::aio::MultiplexedConnection,
     key: &str,
     config: &T,
 ) {
@@ -67,7 +67,7 @@ pub async fn set_string_key_config<T: serde::Serialize>(
         .unwrap();
 }
 
-pub async fn cleanup_key(connection: &mut redis::aio::Connection, key: &str) {
+pub async fn cleanup_key(connection: &mut redis::aio::MultiplexedConnection, key: &str) {
     // On CI it randomly failed, so we don't check for the result
     _ = connection.del::<_, i32>(key).await;
 }

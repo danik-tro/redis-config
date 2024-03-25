@@ -66,7 +66,7 @@ async fn main() {
     let mut settings_to_serialize = std::collections::HashMap::new();
     settings_to_serialize.insert("server".to_string(), conf_settings.server.clone());
 
-    let mut conn = client.get_async_connection().await.unwrap();
+    let mut conn = client.get_multiplexed_async_connection().await.unwrap();
     conn.set::<_, _, String>(
         SOURCE_KEY,
         serde_json::to_string(&settings_to_serialize).unwrap(),

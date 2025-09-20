@@ -177,7 +177,7 @@ impl<SK: redis::ToRedisArgs + Clone + Send + Sync> RedisSource<SK, states::Json>
         let data = data.ok_or(SourceError::RedisKeyDoesNotExist)?;
 
         let data: Vec<Map<String, config::Value>> =
-            serde_json::from_slice(&data).map_err(|err| SourceError::SerdeError(err))?;
+            serde_json::from_slice(&data).map_err(SourceError::SerdeError)?;
 
         data.into_iter()
             .next()

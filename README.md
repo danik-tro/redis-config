@@ -20,11 +20,8 @@ There are a few features defined in [redis-rs](https://github.com/redis-rs/redis
  Some of them are turned on by default.
  - ahash: enables ahash map/set support & uses ahash internally (+7-10% performance) (optional)
  - tokio-comp: enables support for tokio runtime (enabled by default)
- - async-std-comp: enables support for async-std runtime (optional)
 
  ##### Tls features
- - async-std-native-tls-comp: enables support for native-tls for async-std (optional)
- - async-std-rustls-comp: enables support for rustls for async-std (optional)
  - tokio-native-tls-comp: enables support for native-tls for tokio (optional)
  - tokio-rustls-comp: enables support for rustls for tokio (optional).
 
@@ -39,7 +36,7 @@ See the examples for general usage information.
 # Cargo.toml
 
 [dependencies]
-config = "0.13.3"
+config = "0.15.6"
 redis_config = { version = "*", features = ["tokio-comp"]}
 tokio = { version = "1", features = ["rt", "macros", "rt-multi-thread"] }
 serde = { version = "1.0", features = ["derive"]}

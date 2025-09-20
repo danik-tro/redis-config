@@ -12,6 +12,9 @@ use std::{collections::HashMap, fmt::Debug, marker::PhantomData};
 use config::{AsyncSource, ConfigError, Map};
 use redis::AsyncCommands;
 
+#[cfg(feature = "json")]
+use redis::JsonAsyncCommands;
+
 /// A configuration async source backed up by a Redis.
 ///
 /// It supports retrieving configuration in JSON format from Strings and Hashes types in Redis.
@@ -157,12 +160,49 @@ impl<SK: redis::ToRedisArgs + Clone + Send + Sync> RedisSource<SK, states::Hash>
     }
 }
 
+#[cfg(feature = "json")]
+impl<SK: redis::ToRedisArgs + Clone + Send + Sync> RedisSource<SK, states::Json> {
+    async fn collect_from_json(&self) -> SourceResult<Map<String, config::Value>> {
+        let data: Option<Vec<u8>> = self
+            .client
+            .get_multiplexed_async_connection()
+            .await?
+            .json_get(self.source_key.clone(), "$")
+            .await?;
+
+        if !self.required && data.is_none() {
+            return Ok(Map::new());
+        }
+
+        let data = data.ok_or(SourceError::RedisKeyDoesNotExist)?;
+
+        let data: Vec<Map<String, config::Value>> =
+            serde_json::from_slice(&data).map_err(|err| SourceError::SerdeError(err))?;
+
+        data.into_iter()
+            .next()
+            .ok_or(SourceError::RedisKeyDoesNotExist)
+    }
+}
+
 #[async_trait::async_trait]
 impl<SK: redis::ToRedisArgs + Clone + Send + Sync + Debug> AsyncSource
     for RedisSource<SK, states::Hash>
 {
     async fn collect(&self) -> Result<Map<String, config::Value>, ConfigError> {
         self.collect_from_hash()
+            .await
+            .map_err(|err| ConfigError::NotFound(err.to_string()))
+    }
+}
+
+#[cfg(feature = "json")]
+#[async_trait::async_trait]
+impl<SK: redis::ToRedisArgs + Clone + Send + Sync + Debug> AsyncSource
+    for RedisSource<SK, states::Json>
+{
+    async fn collect(&self) -> Result<Map<String, config::Value>, ConfigError> {
+        self.collect_from_json()
             .await
             .map_err(|err| ConfigError::NotFound(err.to_string()))
     }

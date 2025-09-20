@@ -1,4 +1,5 @@
 /// Represents all possible errors that can occur during working with the source.  
+#[non_exhaustive]
 #[derive(Debug, thiserror::Error)]
 pub enum SourceError {
     /// Configuration can't be read from the Redis due to the redis error

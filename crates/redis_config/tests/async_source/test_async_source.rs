@@ -3,6 +3,8 @@ use fake::faker::lorem::en::Words;
 use fake::{Dummy, Fake, Faker};
 
 use redis::AsyncCommands;
+#[cfg(feature = "json")]
+use redis::JsonAsyncCommands;
 use redis_config::{states, RedisSource};
 
 use std::fmt::Debug;
@@ -23,6 +25,23 @@ pub async fn get_serialized_config_plain_string<
     C: DeserializeOwned,
 >(
     source: redis_config::RedisSource<SK, states::PlainString>,
+) -> C {
+    config::ConfigBuilder::<AsyncState>::default()
+        .add_async_source(source)
+        .build()
+        .await
+        .unwrap()
+        .try_deserialize()
+        .unwrap()
+}
+
+#[cfg(feature = "json")]
+#[allow(unused)]
+pub async fn get_serialized_config_json<
+    SK: redis::ToRedisArgs + Clone + Send + Sync + Debug + 'static,
+    C: DeserializeOwned,
+>(
+    source: redis_config::RedisSource<SK, states::Json>,
 ) -> C {
     config::ConfigBuilder::<AsyncState>::default()
         .add_async_source(source)
@@ -192,4 +211,50 @@ async fn plain_string_flat_config() {
 #[tokio::test]
 async fn plain_string_nested_config() {
     check_key_string_config!(NestedConfiguration);
+}
+
+#[cfg(feature = "json")]
+#[tokio::test]
+async fn json_flat_config() {
+    let mut connection = get_connection().await;
+    // setup
+    let uuid_key = uuid7::uuid7().to_string();
+    let configuration: FlatConfiguration = Faker.fake();
+
+    let _: bool = connection
+        .json_set(&uuid_key, "$", &configuration)
+        .await
+        .unwrap();
+
+    let source =
+        RedisSource::<_, states::Json>::try_new(uuid_key.clone(), get_redis_url()).unwrap();
+
+    let config_deserilized: FlatConfiguration = get_serialized_config_json(source).await;
+
+    // cleanup
+    cleanup_key(&mut connection, &uuid_key).await;
+    assert_eq!(config_deserilized, configuration);
+}
+
+#[cfg(feature = "json")]
+#[tokio::test]
+async fn json_nested_config() {
+    let mut connection = get_connection().await;
+    // setup
+    let uuid_key = uuid7::uuid7().to_string();
+    let configuration: NestedConfiguration = Faker.fake();
+
+    let _: bool = connection
+        .json_set(&uuid_key, "$", &configuration)
+        .await
+        .unwrap();
+
+    let source =
+        RedisSource::<_, states::Json>::try_new(uuid_key.clone(), get_redis_url()).unwrap();
+
+    let config_deserilized: NestedConfiguration = get_serialized_config_json(source).await;
+
+    // cleanup
+    cleanup_key(&mut connection, &uuid_key).await;
+    assert_eq!(config_deserilized, configuration);
 }

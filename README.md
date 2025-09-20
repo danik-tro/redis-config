@@ -13,6 +13,7 @@
 `RedisSource` supports reading configuration:
  - from Hash using the HGETALL command,
  - from String using the GET command,
+ - from JSON using the JSON.GET [key] $ command,
 
 ##### Features
 
@@ -20,6 +21,7 @@ There are a few features defined in [redis-rs](https://github.com/redis-rs/redis
  Some of them are turned on by default.
  - ahash: enables ahash map/set support & uses ahash internally (+7-10% performance) (optional)
  - tokio-comp: enables support for tokio runtime (enabled by default)
+ - json: enables support for JSON using the JSON.GET [key] $ command (optional)
 
  ##### Tls features
  - tokio-native-tls-comp: enables support for native-tls for tokio (optional)

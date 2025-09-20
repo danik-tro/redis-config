@@ -62,7 +62,7 @@ jobs:
     strategy:
       matrix:
         rust:
-          - 1.80.0
+          - 1.82.0
           - stable
           - nightly
 
@@ -91,7 +91,7 @@ jobs:
     strategy:
       matrix:
         rust:
-          - 1.80.0
+          - 1.82.0
           - 1.86.0
     steps:
       - name: Checkout sources
@@ -123,7 +123,7 @@ jobs:
     strategy:
       matrix:
         rust:
-          - 1.80.0
+          - 1.82.0
 
     steps:
       - name: Checkout sources

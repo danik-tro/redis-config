@@ -2,9 +2,11 @@
 #![doc = include_str!("../README.md")]
 //!
 
+pub mod builder;
 mod errors;
 pub mod states;
 
+pub use builder::RedisSourceBuilder;
 pub use errors::{SourceError, SourceResult};
 
 use std::{collections::HashMap, fmt::Debug, marker::PhantomData};
@@ -21,44 +23,95 @@ use redis::JsonAsyncCommands;
 ///
 /// # Examples
 ///
+/// ## Using the Builder Pattern (Recommended)
+///
+/// ```rust,no_run
+/// use config::builder::AsyncState;
+/// use redis_config::RedisSource;
+/// use std::time::Duration;
+///
+/// #[derive(Debug, serde::Serialize, serde::Deserialize)]
+/// struct AppConfig {
+///     server_port: u16,
+///     database_url: String,
+/// }
+///
+/// async fn get_config() -> Result<AppConfig, config::ConfigError> {
+///     // String configuration with builder pattern
+///     let redis_source = RedisSource::builder()
+///         .url("redis://127.0.0.1:6379")
+///         .key("app-config")
+///         .as_string()
+///         .optional()
+///         .with_timeout(Duration::from_secs(5))
+///         .build()
+///         .map_err(|err| config::ConfigError::NotFound(err.to_string()))?;
+///
+///     let config = config::ConfigBuilder::<AsyncState>::default()
+///         .add_async_source(redis_source)
+///         .build()
+///         .await?;
+///
+///     config.try_deserialize()
+/// }
+/// ```
+///
+/// ## Different Redis Data Types
+///
+/// ```rust,no_run
+/// use redis_config::RedisSource;
+///
+/// // String data (JSON stored as Redis string)
+/// let string_source = RedisSource::builder()
+///     .url("redis://localhost:6379")
+///     .key("config-key")
+///     .as_string()
+///     .build()?;
+///
+/// // Hash data (key-value pairs stored as Redis hash)
+/// let hash_source = RedisSource::builder()
+///     .url("redis://localhost:6379")
+///     .key("config-hash")
+///     .as_hash()
+///     .build()?;
+///
+/// // JSON data (requires 'json' feature and RedisJSON module)
+/// #[cfg(feature = "json")]
+/// let json_source = RedisSource::builder()
+///     .url("redis://localhost:6379")
+///     .key("config-json")
+///     .as_json()
+///     .build()?;
+/// # Ok::<(), redis_config::SourceError>(())
+/// ```
+///
+/// ## Environment-based Configuration
+///
+/// ```rust,no_run
+/// use redis_config::RedisSourceBuilder;
+///
+/// // Load connection details from environment variables
+/// std::env::set_var("REDIS_URL", "redis://localhost:6379");
+/// std::env::set_var("CONFIG_KEY", "my-app-config");
+///
+/// let source = RedisSourceBuilder::from_env("REDIS_URL")?
+///     .key_from_env("CONFIG_KEY")?
+///     .as_string()
+///     .build()?;
+/// # Ok::<(), redis_config::SourceError>(())
+/// ```
+///
+/// ## Legacy API (still supported)
+///
 /// ```rust,no_run
 /// use config::builder::AsyncState;
 /// use redis_config::{states, RedisSource};
 ///
-/// // hardcoded values, shouldn't be in production
 /// const REDIS_URL: &str = "redis://127.0.0.1:6379";
 /// const SOURCE_KEY: &str = "application-settings";
 ///
-/// #[derive(Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq, Clone)]
-/// struct ServerSettings {
-///     ttl: i64,
-///     path: String,
-///     // another settings
-///     // ...
-/// }
-///
-/// #[derive(Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
-/// struct DbSettings {
-///     pool_size: usize,
-///     // another settings
-///     // ...
-/// }
-///
-/// #[derive(Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
-/// struct ApplicationSettings {
-///     // settings that will be taken from RedisSource
-///     server: ServerSettings,
-///     // settings that will be taken from Env
-///     db: DbSettings,
-/// }
-///
-/// async fn get_config() -> Result<ApplicationSettings, config::ConfigError> {
+/// async fn get_config_legacy() -> Result<serde_json::Value, config::ConfigError> {
 ///     let config = config::ConfigBuilder::<AsyncState>::default()
-///         .add_source(
-///             config::Environment::with_prefix("APP")
-///                 .separator("__")
-///                 .try_parsing(true),
-///         )
 ///         .add_async_source(
 ///             RedisSource::<_, states::PlainString>::try_new(SOURCE_KEY, REDIS_URL)
 ///                 .map_err(|err| config::ConfigError::NotFound(err.to_string()))?,
@@ -67,11 +120,6 @@ use redis::JsonAsyncCommands;
 ///         .await?;
 ///
 ///     config.try_deserialize()
-/// }
-///
-/// #[tokio::main]
-/// async fn main() {
-///     let config = get_config().await.unwrap();
 /// }
 /// ```
 #[derive(Debug)]
@@ -113,6 +161,30 @@ impl<SK, S> RedisSource<SK, S> {
     pub fn required(mut self, required: bool) -> Self {
         self.required = required;
         self
+    }
+}
+
+impl RedisSource<String, states::PlainString> {
+    /// Create a new builder for constructing a `RedisSource` with a fluent API.
+    ///
+    /// # Examples
+    ///
+    /// ```rust,no_run
+    /// use redis_config::RedisSource;
+    /// use std::time::Duration;
+    ///
+    /// let source = RedisSource::builder()
+    ///     .url("redis://localhost:6379")
+    ///     .key("app-config")
+    ///     .as_string()
+    ///     .optional()
+    ///     .with_timeout(Duration::from_secs(5))
+    ///     .build()?;
+    /// # Ok::<(), redis_config::SourceError>(())
+    /// ```
+    #[must_use]
+    pub fn builder() -> builder::RedisSourceBuilder {
+        builder::RedisSourceBuilder::new()
     }
 }
 
